@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import './Login.css';
 
 const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const formRef = useRef({
+    email: "",
+    password: "",
+  });
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -14,8 +16,8 @@ const Login = () => {
 
     try {
       const response = await axios.post("http://localhost:8000/api/v1/auth/login", {
-        email: email,
-        password_hash: password,
+        email: formRef.current.email,
+        password_hash: formRef.current.password,
       });
 
       localStorage.setItem("access_token", response.data.access_token);
@@ -23,6 +25,10 @@ const Login = () => {
     } catch (err) {
       setError(err.response?.data?.detail || "Login failed. Please try again.");
     }
+  };
+
+  const handleChange = (e) => {
+    formRef.current[e.target.name] = e.target.value;
   };
 
   const handleRegisterClick = () => {
@@ -34,14 +40,14 @@ const Login = () => {
       {/* Navbar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
         <div className="container">
-          <div class="loader" href='/'>
-            <div class="loader-square"></div>
-            <div class="loader-square"></div>
-            <div class="loader-square"></div>
-            <div class="loader-square"></div>
-            <div class="loader-square"></div>
-            <div class="loader-square"></div>
-            <div class="loader-square"></div>
+          <div className="loader" href='/'>
+            <div className="loader-square"></div>
+            <div className="loader-square"></div>
+            <div className="loader-square"></div>
+            <div className="loader-square"></div>
+            <div className="loader-square"></div>
+            <div className="loader-square"></div>
+            <div className="loader-square"></div>
           </div>
           <div className="collapse navbar-collapse justify-content-end">
             <div className="navbar-nav">
@@ -70,9 +76,9 @@ const Login = () => {
               <label className="form-label">Email:</label>
               <input
                 type="email"
+                name="email"
                 className="form-control"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleChange}
                 required
               />
             </div>
@@ -80,9 +86,9 @@ const Login = () => {
               <label className="form-label">Password:</label>
               <input
                 type="password"
+                name="password"
                 className="form-control"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handleChange}
                 required
               />
             </div>

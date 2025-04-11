@@ -6,6 +6,10 @@ import './Profile.css';
 const Profile = () => {
   const [user, setUser] = useState(null);
   const [error, setError] = useState("");
+  const [isEditing, setIsEditing] = useState(false); // Praćenje režima uređivanja korisničkog imena
+  const [newUsername, setNewUsername] = useState(""); // Praćenje unosa za novo korisničko ime
+  const [isEditingEmail, setIsEditingEmail] = useState(false); // Praćenje režima uređivanja email-a
+  const [newEmail, setNewEmail] = useState(""); // Praćenje unosa za novi email
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -15,7 +19,7 @@ const Profile = () => {
 
         const response = await axios.get("http://localhost:8000/api/v1/auth/me", {
           headers: {
-            Authorization: `Bearer ${token}`, // Dodaj token u Authorization zaglavlje
+            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -27,6 +31,36 @@ const Profile = () => {
 
     fetchUser();
   }, []);
+
+  const handleUpdateUsername = async () => {
+    try {
+      const response = await axios.patch(
+        "http://localhost:8000/api/v1/auth/update-username",
+        { user_uid: String(user.uid), new_username: String(newUsername) }
+      );
+
+      setUser(response.data.user); // Ažuriraj korisnika sa novim podacima
+      setIsEditing(false); // Izađi iz režima uređivanja
+    } catch (err) {
+      console.error("Error updating username:", err.response?.data || err.message);
+      alert("Failed to update username");
+    }
+  };
+
+  const handleUpdateEmail = async () => {
+    try {
+      const response = await axios.patch(
+        "http://localhost:8000/api/v1/auth/update-email",
+        { user_uid: String(user.uid), new_email: String(newEmail) }
+      );
+
+      setUser(response.data.user); // Ažuriraj korisnika sa novim podacima
+      setIsEditingEmail(false); // Izađi iz režima uređivanja
+    } catch (err) {
+      console.error("Error updating email:", err.response?.data || err.message);
+      alert("Failed to update email");
+    }
+  };
 
   if (error) {
     return (
@@ -55,18 +89,15 @@ const Profile = () => {
       {/* Header / Navbar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
         <div className="container">
-          <div class="loader" href='/'>
-            <div class="loader-square"></div>
-            <div class="loader-square"></div>
-            <div class="loader-square"></div>
-            <div class="loader-square"></div>
-            <div class="loader-square"></div>
-            <div class="loader-square"></div>
-            <div class="loader-square"></div>
+          <div className="loader" href='/'>
+            <div className="loader-square"></div>
+            <div className="loader-square"></div>
+            <div className="loader-square"></div>
+            <div className="loader-square"></div>
+            <div className="loader-square"></div>
+            <div className="loader-square"></div>
+            <div className="loader-square"></div>
           </div>
-          <a className="navbar-brand" href="/profile">
-            {user.username}
-          </a>
           <div className="collapse navbar-collapse justify-content-end">
             <div className="navbar-nav">
               <button className="btn btn-outline-light me-2" onClick={() => navigate("/profile")}>
@@ -118,8 +149,74 @@ const Profile = () => {
                   <div className="col-4">
                     <strong>Email:</strong>
                   </div>
-                  <div className="col-8">
-                    {user.email}
+                  <div className="col-8 d-flex align-items-center">
+                    {isEditingEmail ? (
+                      <input
+                        type="email"
+                        className="form-control me-2"
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                      />
+                    ) : (
+                      <span className="me-2">{user.email}</span>
+                    )}
+                    {isEditingEmail ? (
+                      <>
+                        <button className="btn btn-dark me-2" onClick={handleUpdateEmail}>
+                          Save
+                        </button>
+                        <button className="btn btn-secondary" onClick={() => setIsEditingEmail(false)}>
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        className="btn btn-dark"
+                        onClick={() => {
+                          setNewEmail(user.email); // Postavi trenutni email u input polje
+                          setIsEditingEmail(true);
+                        }}
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="row mb-3">
+                  <div className="col-4">
+                    <strong>Username:</strong>
+                  </div>
+                  <div className="col-8 d-flex align-items-center">
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        className="form-control me-2"
+                        value={newUsername}
+                        onChange={(e) => setNewUsername(e.target.value)}
+                      />
+                    ) : (
+                      <span className="me-2">{user.username}</span>
+                    )}
+                    {isEditing ? (
+                      <>
+                        <button className="btn btn-dark me-2" onClick={handleUpdateUsername}>
+                          Save
+                        </button>
+                        <button className="btn btn-secondary" onClick={() => setIsEditing(false)}>
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        className="btn btn-dark"
+                        onClick={() => {
+                          setNewUsername(user.username); // Postavi trenutni username u input polje
+                          setIsEditing(true);
+                        }}
+                      >
+                        Edit
+                      </button>
+                    )}
                   </div>
                 </div>
                 <div className="row mb-3">
