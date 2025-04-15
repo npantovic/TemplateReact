@@ -20,33 +20,47 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     // Formatiraj datum rođenja
     const formattedDate = formRef.current.date_of_birth.split("-").reverse().join("-");
-
+  
     try {
-      // await axios.post("http://localhost:8000/api/v1/auth/singup", {
-      //   username: formRef.current.username,
-      //   email: formRef.current.email,
-      //   password_hash: formRef.current.password_hash,
-      //   first_name: formRef.current.first_name,
-      //   last_name: formRef.current.last_name,
-      //   UCIN: formRef.current.UCIN,
-      //   date_of_birth: formattedDate,
-      //   gender: formRef.current.gender,
-      // });
       await axios.post("http://localhost:8000/api/v1/auth/singup", {
-      ...formRef.current,
-      date_of_birth: formattedDate,
+        ...formRef.current,
+        date_of_birth: formattedDate,
       });
-
+  
       setSuccess("Registration successful! Please check your email.");
       setError("");
       setTimeout(() => {
         navigate("/login");
       }, 1000);
     } catch (err) {
-      setError(err.response?.data?.detail || "Registration failed. Please try again.");
+      if (err.response?.data) {
+        if (typeof err.response.data.detail === "object") {
+          const detailErrors = Object.entries(err.response.data.detail).map(([key, value]) => {
+            if (Array.isArray(value)) {
+              return value.map((item) => item.msg).join(", ");
+            } else if (typeof value === "object" && value.msg) {
+              return value.msg;
+            }
+            return `${key}: ${value}`;
+          });
+          setError(detailErrors.join(" | "));
+        } else if (typeof err.response.data.detail === "string") {
+          setError(err.response.data.detail);
+        } else {
+          const errors = Object.entries(err.response.data).map(([field, messages]) => {
+            if (Array.isArray(messages)) {
+              return messages.map((item) => (item.msg ? item.msg : item)).join(", ");
+            }
+            return messages.msg ? messages.msg : messages;
+          });
+          setError(errors.join(" | "));
+        }
+      } else {
+        setError("Registration failed. Please try again.");
+      }
       setSuccess("");
     }
   };
@@ -60,14 +74,14 @@ const Register = () => {
       {/* Navbar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
         <div className="container">
-          <div class="loader">
-            <div class="loader-square"></div>
-            <div class="loader-square"></div>
-            <div class="loader-square"></div>
-            <div class="loader-square"></div>
-            <div class="loader-square"></div>
-            <div class="loader-square"></div>
-            <div class="loader-square"></div>
+          <div className="loader">
+            <div className="loader-square"></div>
+            <div className="loader-square"></div>
+            <div className="loader-square"></div>
+            <div className="loader-square"></div>
+            <div className="loader-square"></div>
+            <div className="loader-square"></div>
+            <div className="loader-square"></div>
           </div>
           <div className="collapse navbar-collapse justify-content-end">
             <div className="navbar-nav">

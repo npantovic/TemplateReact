@@ -6,10 +6,10 @@ import './Profile.css';
 const Profile = () => {
   const [user, setUser] = useState(null);
   const [error, setError] = useState("");
-  const [isEditing, setIsEditing] = useState(false); // Praćenje režima uređivanja korisničkog imena
-  const [newUsername, setNewUsername] = useState(""); // Praćenje unosa za novo korisničko ime
-  const [isEditingEmail, setIsEditingEmail] = useState(false); // Praćenje režima uređivanja email-a
-  const [newEmail, setNewEmail] = useState(""); // Praćenje unosa za novi email
+  const [isEditing, setIsEditing] = useState(false);
+  const [newUsername, setNewUsername] = useState("");
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,8 +39,8 @@ const Profile = () => {
         { user_uid: String(user.uid), new_username: String(newUsername) }
       );
 
-      setUser(response.data.user); // Ažuriraj korisnika sa novim podacima
-      setIsEditing(false); // Izađi iz režima uređivanja
+      setUser(response.data.user);
+      setIsEditing(false);
     } catch (err) {
       console.error("Error updating username:", err.response?.data || err.message);
       alert("Failed to update username");
@@ -54,8 +54,8 @@ const Profile = () => {
         { user_uid: String(user.uid), new_email: String(newEmail) }
       );
 
-      setUser(response.data.user); // Ažuriraj korisnika sa novim podacima
-      setIsEditingEmail(false); // Izađi iz režima uređivanja
+      setUser(response.data.user);
+      setIsEditingEmail(false);
     } catch (err) {
       console.error("Error updating email:", err.response?.data || err.message);
       alert("Failed to update email");
@@ -86,7 +86,6 @@ const Profile = () => {
 
   return (
     <>
-      {/* Header / Navbar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
         <div className="container">
           <div className="loader" href='/'>
@@ -103,9 +102,9 @@ const Profile = () => {
               <button className="btn btn-outline-light me-2" onClick={() => navigate("/profile")}>
                 Profil
               </button>
-              <button className="btn btn-outline-light me-2" onClick={() => navigate("/books/all")}>
+              { /* <button className="btn btn-outline-light me-2" onClick={() => navigate("/books/all")}>
                 Sve knjige
-              </button>
+              </button> */}
               <button
                 className="btn btn-outline-light"
                 onClick={() => {
@@ -129,39 +128,31 @@ const Profile = () => {
                 <h3>Welcome, {user.username}!</h3>
               </div>
               <div className="card-body">
-                <div className="row mb-3">
+                <div className="row mb-3 align-items-center">
                   <div className="col-4">
                     <strong>First Name:</strong>
                   </div>
-                  <div className="col-8">
-                    {user.first_name}
-                  </div>
+                  <div className="col-8">{user.first_name}</div>
                 </div>
-                <div className="row mb-3">
+                <div className="row mb-3 align-items-center">
                   <div className="col-4">
                     <strong>Last Name:</strong>
                   </div>
-                  <div className="col-8">
-                    {user.last_name}
-                  </div>
+                  <div className="col-8">{user.last_name}</div>
                 </div>
-                <div className="row mb-3">
+                <div className="row mb-3 align-items-center">
                   <div className="col-4">
                     <strong>Email:</strong>
                   </div>
-                  <div className="col-8 d-flex align-items-center">
-                    {isEditingEmail ? (
-                      <input
-                        type="email"
-                        className="form-control me-2"
-                        value={newEmail}
-                        onChange={(e) => setNewEmail(e.target.value)}
-                      />
-                    ) : (
-                      <span className="me-2">{user.email}</span>
-                    )}
+                  <div className="col-8 d-flex justify-content-between">
                     {isEditingEmail ? (
                       <>
+                        <input
+                          type="email"
+                          className="form-control me-2"
+                          value={newEmail}
+                          onChange={(e) => setNewEmail(e.target.value)}
+                        />
                         <button className="btn btn-dark me-2" onClick={handleUpdateEmail}>
                           Save
                         </button>
@@ -170,35 +161,34 @@ const Profile = () => {
                         </button>
                       </>
                     ) : (
-                      <button
-                        className="btn btn-dark"
-                        onClick={() => {
-                          setNewEmail(user.email); // Postavi trenutni email u input polje
-                          setIsEditingEmail(true);
-                        }}
-                      >
-                        Edit
-                      </button>
+                      <>
+                        <span>{user.email}</span>
+                        <button
+                          className="btn btn-dark"
+                          onClick={() => {
+                            setNewEmail(user.email);
+                            setIsEditingEmail(true);
+                          }}
+                        >
+                          Edit
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
-                <div className="row mb-3">
+                <div className="row mb-3 align-items-center">
                   <div className="col-4">
                     <strong>Username:</strong>
                   </div>
-                  <div className="col-8 d-flex align-items-center">
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        className="form-control me-2"
-                        value={newUsername}
-                        onChange={(e) => setNewUsername(e.target.value)}
-                      />
-                    ) : (
-                      <span className="me-2">{user.username}</span>
-                    )}
+                  <div className="col-8 d-flex justify-content-between">
                     {isEditing ? (
                       <>
+                        <input
+                          type="text"
+                          className="form-control me-2"
+                          value={newUsername}
+                          onChange={(e) => setNewUsername(e.target.value)}
+                        />
                         <button className="btn btn-dark me-2" onClick={handleUpdateUsername}>
                           Save
                         </button>
@@ -207,25 +197,26 @@ const Profile = () => {
                         </button>
                       </>
                     ) : (
-                      <button
-                        className="btn btn-dark"
-                        onClick={() => {
-                          setNewUsername(user.username); // Postavi trenutni username u input polje
-                          setIsEditing(true);
-                        }}
-                      >
-                        Edit
-                      </button>
+                      <>
+                        <span>{user.username}</span>
+                        <button
+                          className="btn btn-dark"
+                          onClick={() => {
+                            setNewUsername(user.username);
+                            setIsEditing(true);
+                          }}
+                        >
+                          Edit
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
-                <div className="row mb-3">
+                <div className="row mb-3 align-items-center">
                   <div className="col-4">
                     <strong>UCIN:</strong>
                   </div>
-                  <div className="col-8">
-                    {user.UCIN}
-                  </div>
+                  <div className="col-8">{user.UCIN}</div>
                 </div>
               </div>
             </div>
