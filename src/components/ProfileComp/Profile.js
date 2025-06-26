@@ -10,19 +10,20 @@ const Profile = () => {
   const [newUsername, setNewUsername] = useState("");
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [newEmail, setNewEmail] = useState("");
+  const [qrCodeUrl, setQrCodeUrl] = useState(null);
+  const [showQRCode, setShowQRCode] = useState(false);
+  const [countdown, setCountdown] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem("access_token");
-
         const response = await axios.get("http://localhost:8000/api/v1/auth/me", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-
         setUser(response.data);
       } catch (err) {
         setError(err.response?.data?.detail || "Not authenticated");
@@ -32,13 +33,24 @@ const Profile = () => {
     fetchUser();
   }, []);
 
+  useEffect(() => {
+    if (showQRCode && countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown(prev => prev - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (countdown === 0) {
+      setShowQRCode(false);
+      setQrCodeUrl(null);
+    }
+  }, [countdown, showQRCode]);
+
   const handleUpdateUsername = async () => {
     try {
       const response = await axios.patch(
         "http://localhost:8000/api/v1/auth/update-username",
         { user_uid: String(user.uid), new_username: String(newUsername) }
       );
-
       setUser(response.data.user);
       setIsEditing(false);
     } catch (err) {
@@ -53,12 +65,32 @@ const Profile = () => {
         "http://localhost:8000/api/v1/auth/update-email",
         { user_uid: String(user.uid), new_email: String(newEmail) }
       );
-
       setUser(response.data.user);
-      setIsEditingEmail(false);
     } catch (err) {
       console.error("Error updating email:", err.response?.data || err.message);
       alert("Failed to update email");
+    }
+  };
+
+  const handleActivate2FA = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = await axios.get(
+        `http://localhost:8000/api/v1/auth/2fa/qr-code/${user.username}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          responseType: "blob",
+        }
+      );
+      const qrImageUrl = URL.createObjectURL(response.data);
+      setQrCodeUrl(qrImageUrl);
+      setShowQRCode(true);
+      setCountdown(20);
+    } catch (err) {
+      console.error("Error fetching 2FA QR code:", err.response?.data || err.message);
+      alert("Failed to generate 2FA QR code");
     }
   };
 
@@ -102,9 +134,6 @@ const Profile = () => {
               <button className="btn btn-outline-light me-2" onClick={() => navigate("/profile")}>
                 Profil
               </button>
-              { /* <button className="btn btn-outline-light me-2" onClick={() => navigate("/books/all")}>
-                Sve knjige
-              </button> */}
               <button
                 className="btn btn-outline-light"
                 onClick={() => {
@@ -129,95 +158,67 @@ const Profile = () => {
               </div>
               <div className="card-body">
                 <div className="row mb-3 align-items-center">
-                  <div className="col-4">
-                    <strong>First Name:</strong>
-                  </div>
+                  <div className="col-4"><strong>First Name:</strong></div>
                   <div className="col-8">{user.first_name}</div>
                 </div>
                 <div className="row mb-3 align-items-center">
-                  <div className="col-4">
-                    <strong>Last Name:</strong>
-                  </div>
+                  <div className="col-4"><strong>Last Name:</strong></div>
                   <div className="col-8">{user.last_name}</div>
                 </div>
                 <div className="row mb-3 align-items-center">
-                  <div className="col-4">
-                    <strong>Email:</strong>
-                  </div>
+                  <div className="col-4"><strong>Email:</strong></div>
                   <div className="col-8 d-flex justify-content-between">
                     {isEditingEmail ? (
                       <>
-                        <input
-                          type="email"
-                          className="form-control me-2"
-                          value={newEmail}
-                          onChange={(e) => setNewEmail(e.target.value)}
-                        />
-                        <button className="btn btn-dark me-2" onClick={handleUpdateEmail}>
-                          Save
-                        </button>
-                        <button className="btn btn-secondary" onClick={() => setIsEditingEmail(false)}>
-                          Cancel
-                        </button>
+                        <input type="email" className="form-control me-2" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
+                        <button className="btn btn-dark me-2" onClick={handleUpdateEmail}>Save</button>
+                        <button className="btn btn-secondary" onClick={() => setIsEditingEmail(false)}>Cancel</button>
                       </>
                     ) : (
                       <>
                         <span>{user.email}</span>
-                        <button
-                          className="btn btn-dark"
-                          onClick={() => {
-                            setNewEmail(user.email);
-                            setIsEditingEmail(true);
-                          }}
-                        >
-                          Edit
-                        </button>
+                        <button className="btn btn-dark" onClick={() => { setNewEmail(user.email); setIsEditingEmail(true); }}>Edit</button>
                       </>
                     )}
                   </div>
                 </div>
                 <div className="row mb-3 align-items-center">
-                  <div className="col-4">
-                    <strong>Username:</strong>
-                  </div>
+                  <div className="col-4"><strong>Username:</strong></div>
                   <div className="col-8 d-flex justify-content-between">
                     {isEditing ? (
                       <>
-                        <input
-                          type="text"
-                          className="form-control me-2"
-                          value={newUsername}
-                          onChange={(e) => setNewUsername(e.target.value)}
-                        />
-                        <button className="btn btn-dark me-2" onClick={handleUpdateUsername}>
-                          Save
-                        </button>
-                        <button className="btn btn-secondary" onClick={() => setIsEditing(false)}>
-                          Cancel
-                        </button>
+                        <input type="text" className="form-control me-2" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} />
+                        <button className="btn btn-dark me-2" onClick={handleUpdateUsername}>Save</button>
+                        <button className="btn btn-secondary" onClick={() => setIsEditing(false)}>Cancel</button>
                       </>
                     ) : (
                       <>
                         <span>{user.username}</span>
-                        <button
-                          className="btn btn-dark"
-                          onClick={() => {
-                            setNewUsername(user.username);
-                            setIsEditing(true);
-                          }}
-                        >
-                          Edit
-                        </button>
+                        <button className="btn btn-dark" onClick={() => { setNewUsername(user.username); setIsEditing(true); }}>Edit</button>
                       </>
                     )}
                   </div>
                 </div>
                 <div className="row mb-3 align-items-center">
-                  <div className="col-4">
-                    <strong>UCIN:</strong>
-                  </div>
+                  <div className="col-4"><strong>UCIN:</strong></div>
                   <div className="col-8">{user.UCIN}</div>
                 </div>
+                <div className="row mb-3 text-center">
+                  <div className="d-flex justify-content-center mt-3">
+                    <button className="btn btn-dark" onClick={handleActivate2FA}>
+                      Activate 2FA
+                    </button>
+                  </div>
+                </div>
+                {showQRCode && (
+                  <div className="row mb-3 text-center">
+                    <div className="col">
+                      <h5>Scan this QR Code with your authenticator app:</h5>
+                      <p>This code will disappear in <strong>{countdown}</strong> seconds.</p>
+                      <img src={qrCodeUrl} alt="2FA QR Code" className="img-fluid" style={{ maxWidth: "200px" }} />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

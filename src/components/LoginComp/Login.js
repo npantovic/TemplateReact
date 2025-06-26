@@ -11,6 +11,58 @@ const Login = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  const [code, setCode] = useState(["", "", "", "", "", ""]);
+  const inputRefs = useRef([]);
+
+
+  const handleCodeChange = (e, index) => {
+    const value = e.target.value.replace(/\D/, "");
+    if (!value) return;
+
+    const newCode = [...code];
+    newCode[index] = value;
+    setCode(newCode);
+
+    if (index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyDown = (e, index) => {
+    const newCode = [...code];
+
+    if (e.key === "Backspace") {
+      e.preventDefault();
+
+      if (newCode[index]) {
+        // Ako ima nešto, obriši to
+        newCode[index] = "";
+        setCode(newCode);
+      } else if (index > 0) {
+        // Ako nema, idi nazad
+        inputRefs.current[index - 1]?.focus();
+        newCode[index - 1] = "";
+        setCode(newCode);
+      }
+    }
+
+    if (e.key === "ArrowLeft" && index > 0) {
+      e.preventDefault();
+      inputRefs.current[index - 1]?.focus();
+    }
+
+    if (e.key === "ArrowRight" && index < 5) {
+      e.preventDefault();
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleConfirm2FACode = () => {
+    const finalCode = code.join("");
+    console.log("Uneti 2FA kod:", finalCode);
+    // Ovde pozovi API za login sa 2FA kodom
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -66,8 +118,8 @@ const Login = () => {
       </nav>
 
       {/* Login Form */}
-      <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
-        <div className="card p-4 shadow-lg" style={{ maxWidth: "400px", width: "100%" }}>
+      <div className="container d-flex justify-content-center align-items-center flex-column" style={{ minHeight: "80vh" }}>
+        <div className="card p-4 shadow-lg mb-4" style={{ maxWidth: "400px", width: "100%" }}>
           <h2 className="text-center mb-4">Login</h2>
           {error && <div className="alert alert-danger text-center">{error}</div>}
 
@@ -96,6 +148,30 @@ const Login = () => {
               Login
             </button>
           </form>
+        </div>
+
+        {/* 2FA Code Input */}
+        <div className="card p-4 shadow" style={{ maxWidth: "400px", width: "100%" }}>
+          <h5 className="text-center mb-3">Unesite 2FA kod</h5>
+          <div className="d-flex justify-content-between">
+            {[...Array(6)].map((_, index) => (
+              <input
+                key={index}
+                type="text"
+                inputMode="numeric"
+                maxLength="1"
+                className="form-control text-center mx-1"
+                style={{ width: "45px", fontSize: "1.5rem" }}
+                value={code[index]}
+                onChange={(e) => handleCodeChange(e, index)}
+                onKeyDown={(e) => handleKeyDown(e, index)}
+                ref={(el) => (inputRefs.current[index] = el)}
+              />
+            ))}
+          </div>
+          <button className="btn btn-dark w-100 mt-3" onClick={handleConfirm2FACode}>
+            Potvrdi
+          </button>
         </div>
       </div>
     </>
