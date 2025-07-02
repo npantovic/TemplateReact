@@ -9,11 +9,10 @@ const Login = () => {
     password: "",
   });
   const [error, setError] = useState("");
-  const navigate = useNavigate();
-
+  const [show2FA, setShow2FA] = useState(false); // Dodata promenljiva za kontrolu prikaza 2FA
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const inputRefs = useRef([]);
-
+  const navigate = useNavigate();
 
   const handleCodeChange = (e, index) => {
     const value = e.target.value.replace(/\D/, "");
@@ -35,11 +34,9 @@ const Login = () => {
       e.preventDefault();
 
       if (newCode[index]) {
-        // Ako ima nešto, obriši to
         newCode[index] = "";
         setCode(newCode);
       } else if (index > 0) {
-        // Ako nema, idi nazad
         inputRefs.current[index - 1]?.focus();
         newCode[index - 1] = "";
         setCode(newCode);
@@ -57,10 +54,23 @@ const Login = () => {
     }
   };
 
-  const handleConfirm2FACode = () => {
+  const handleConfirm2FACode = async (e) => {
+    e.preventDefault();
+  
     const finalCode = code.join("");
     console.log("Uneti 2FA kod:", finalCode);
-    // Ovde pozovi API za login sa 2FA kodom
+
+    try {
+      const response = await axios.post("http://localhost:8000/api/v1/auth/prelogin", {
+        otp_code: finalCode,
+        email: localStorage.getItem("email"),
+      });
+      localStorage.setItem("access_token", response.data.access_token);
+      navigate("/profile");
+    } catch (err) {
+      console.log("Error response:", err.response?.data);
+      setError(err.response?.data?.detail || "2FA verification failed. Please try again.");
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -72,8 +82,13 @@ const Login = () => {
         password_hash: formRef.current.password,
       });
 
-      localStorage.setItem("access_token", response.data.access_token);
-      navigate("/profile");
+      if (response.data.requires_2fa) {
+        setShow2FA(true);
+        localStorage.setItem("email", response.data.email);
+      } else {
+        localStorage.setItem("access_token", response.data.access_token);
+        navigate("/profile");
+      }
     } catch (err) {
       setError(err.response?.data?.detail || "Login failed. Please try again.");
     }
@@ -119,6 +134,7 @@ const Login = () => {
 
       {/* Login Form */}
       <div className="container d-flex justify-content-center align-items-center flex-column" style={{ minHeight: "80vh" }}>
+        {!show2FA && (
         <div className="card p-4 shadow-lg mb-4" style={{ maxWidth: "400px", width: "100%" }}>
           <h2 className="text-center mb-4">Login</h2>
           {error && <div className="alert alert-danger text-center">{error}</div>}
@@ -149,30 +165,37 @@ const Login = () => {
             </button>
           </form>
         </div>
+        )}
 
         {/* 2FA Code Input */}
-        <div className="card p-4 shadow" style={{ maxWidth: "400px", width: "100%" }}>
-          <h5 className="text-center mb-3">Unesite 2FA kod</h5>
-          <div className="d-flex justify-content-between">
-            {[...Array(6)].map((_, index) => (
-              <input
-                key={index}
-                type="text"
-                inputMode="numeric"
-                maxLength="1"
-                className="form-control text-center mx-1"
-                style={{ width: "45px", fontSize: "1.5rem" }}
-                value={code[index]}
-                onChange={(e) => handleCodeChange(e, index)}
-                onKeyDown={(e) => handleKeyDown(e, index)}
-                ref={(el) => (inputRefs.current[index] = el)}
-              />
-            ))}
+        {show2FA && (
+          <div className="card p-4 shadow" style={{ maxWidth: "400px", width: "100%" }}>
+            <h5 className="text-center mb-3">Unesite 2FA kod</h5>
+            {error && <div className="alert alert-danger text-center">{error}</div>}
+
+            <form onSubmit={handleConfirm2FACode}>
+              <div className="d-flex justify-content-between">
+                {[...Array(6)].map((_, index) => (
+                  <input
+                    key={index}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength="1"
+                    className="form-control text-center mx-1"
+                    style={{ width: "45px", fontSize: "1.5rem" }}
+                    value={code[index]}
+                    onChange={(e) => handleCodeChange(e, index)}
+                    onKeyDown={(e) => handleKeyDown(e, index)}
+                    ref={(el) => (inputRefs.current[index] = el)}
+                  />
+                ))}
+              </div>
+              <button type="submit" className="btn btn-dark w-100 mt-3">
+                Potvrdi
+              </button>
+            </form>
           </div>
-          <button className="btn btn-dark w-100 mt-3" onClick={handleConfirm2FACode}>
-            Potvrdi
-          </button>
-        </div>
+        )}
       </div>
     </>
   );
