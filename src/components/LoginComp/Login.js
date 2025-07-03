@@ -163,9 +163,9 @@ const Login = () => {
                 required
               />
             </div>
-            {/* <a>
+            <a>
               Forgot your password? <span className="text-primary" onClick={() => navigate("/reset-password")}>Reset it here</span>
-            </a> */}
+            </a>
             <button type="submit" className="btn btn-dark w-100">
               Login
             </button>
