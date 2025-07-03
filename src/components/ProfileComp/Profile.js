@@ -16,6 +16,8 @@ const Profile = () => {
   const navigate = useNavigate();
   const [successMessage, setSuccessMessage] = useState("");
 
+  const [enabled2FA, setEnabled2FA] = useState(false);
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -26,6 +28,7 @@ const Profile = () => {
           },
         });
         setUser(response.data);
+        setEnabled2FA(response.data.enabled_2fa);
       } catch (err) {
         setError(err.response?.data?.detail || "Not authenticated");
       }
@@ -88,6 +91,7 @@ const Profile = () => {
       const qrImageUrl = URL.createObjectURL(response.data);
       setQrCodeUrl(qrImageUrl);
       setShowQRCode(true);
+      setEnabled2FA(true);
       setCountdown(20);
     } catch (err) {
       console.error("Error fetching 2FA QR code:", err.response?.data || err.message);
@@ -119,6 +123,33 @@ const Profile = () => {
       setTimeout(() => {
         setError("");
       }, 3500);
+    }
+  };
+
+  const handleDeactivate2FA = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = await axios.post(
+        "http://localhost:8000/api/v1/auth/disable_2fa",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setEnabled2FA(false); // Postavljanje stanja na deaktivirano
+      setSuccessMessage(response.data.message);
+      setError("");
+      setTimeout(() => {
+        setSuccessMessage("");
+      }, 2500);
+    } catch (err) {
+      console.error("Error disabling 2FA:", err.response?.data || err.message);
+      setError(err.response?.data?.detail || "Failed to disable 2FA. Please try again.");
+      setTimeout(() => {
+        setError("");
+      }, 2500);
     }
   };
 
@@ -243,9 +274,15 @@ const Profile = () => {
                 </div>
                 <div className="row mb-3 text-center">
                   <div className="d-flex justify-content-center mt-3">
-                    <button className="btn btn-dark" onClick={handleActivate2FA}>
-                      Activate 2FA
-                    </button> &nbsp;&nbsp;
+                    {enabled2FA ? (
+                      <button className="btn btn-danger" onClick={handleDeactivate2FA}>
+                        Deactivate 2FA
+                      </button>
+                    ) : (
+                      <button className="btn btn-dark" onClick={handleActivate2FA}>
+                        Activate 2FA
+                      </button>
+                    )} &nbsp;&nbsp;
                     <button className="btn btn-dark" onClick={handleRestartPassword}>
                       Restart password
                     </button>
