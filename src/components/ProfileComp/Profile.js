@@ -14,6 +14,7 @@ const Profile = () => {
   const [showQRCode, setShowQRCode] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const navigate = useNavigate();
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -94,6 +95,33 @@ const Profile = () => {
     }
   };
 
+  const handleRestartPassword = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = await axios.post(
+        "http://localhost:8000/api/v1/auth/password_reset_request",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setSuccessMessage(response.data.message);
+      setError("");
+      setTimeout(() => {
+        setSuccessMessage("");
+      }, 5000);
+    } catch (err) {
+      console.error("Error restarting password:", err.response?.data || err.message);
+      setError(err.response?.data?.detail || "Failed to restart password. Please try again.");
+      setSuccessMessage("");
+      setTimeout(() => {
+        setError("");
+      }, 3500);
+    }
+  };
+
   if (error) {
     return (
       <div className="container mt-5">
@@ -150,6 +178,16 @@ const Profile = () => {
 
       {/* Main content */}
       <div className="container mt-5">
+        {successMessage && (
+          <div className="alert alert-success text-center" role="alert">
+            {successMessage}
+          </div>
+        )}
+        {error && (
+          <div className="alert alert-danger text-center" role="alert">
+            {error}
+          </div>
+        )}
         <div className="row justify-content-center">
           <div className="col-md-6">
             <div className="card shadow">
@@ -207,6 +245,9 @@ const Profile = () => {
                   <div className="d-flex justify-content-center mt-3">
                     <button className="btn btn-dark" onClick={handleActivate2FA}>
                       Activate 2FA
+                    </button> &nbsp;&nbsp;
+                    <button className="btn btn-dark" onClick={handleRestartPassword}>
+                      Restart password
                     </button>
                   </div>
                 </div>

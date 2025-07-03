@@ -61,11 +61,12 @@ const Login = () => {
     console.log("Uneti 2FA kod:", finalCode);
 
     try {
-      const response = await axios.post("http://localhost:8000/api/v1/auth/prelogin", {
+      const response = await axios.post("http://localhost:8000/api/v1/auth/if2falogin", {
         otp_code: finalCode,
         email: localStorage.getItem("email"),
       });
       localStorage.setItem("access_token", response.data.access_token);
+      setError("");
       navigate("/profile");
     } catch (err) {
       console.log("Error response:", err.response?.data);
@@ -84,9 +85,11 @@ const Login = () => {
 
       if (response.data.requires_2fa) {
         setShow2FA(true);
+        setError("");
         localStorage.setItem("email", response.data.email);
       } else {
         localStorage.setItem("access_token", response.data.access_token);
+        setError("");
         navigate("/profile");
       }
     } catch (err) {
@@ -160,6 +163,9 @@ const Login = () => {
                 required
               />
             </div>
+            {/* <a>
+              Forgot your password? <span className="text-primary" onClick={() => navigate("/reset-password")}>Reset it here</span>
+            </a> */}
             <button type="submit" className="btn btn-dark w-100">
               Login
             </button>
