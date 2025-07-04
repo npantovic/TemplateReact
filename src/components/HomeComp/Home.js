@@ -22,7 +22,7 @@ const Home = () => {
       {/* Header / Navbar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
         <div className="container">
-          <div class="loader">
+          <div class="loader" onClick={() => navigate("/")}>
             <div class="loader-square"></div>
             <div class="loader-square"></div>
             <div class="loader-square"></div>
@@ -33,14 +33,14 @@ const Home = () => {
           </div>
           <div className="collapse navbar-collapse justify-content-end">
             <div className="navbar-nav">
+              <button className="btn btn-outline-light me-2" onClick={handleHomeClick}>
+                Home
+              </button>
               <button className="btn btn-outline-light me-2" onClick={handleLoginClick}>
                 Login
               </button>
               <button className="btn btn-outline-light me-2" onClick={handleRegisterClick}>
                 Register
-              </button>
-              <button className="btn btn-outline-light me-2" onClick={handleHomeClick}>
-                Home
               </button>
             </div>
           </div>

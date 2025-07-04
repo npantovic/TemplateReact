@@ -110,7 +110,7 @@ const Login = () => {
       {/* Navbar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
         <div className="container">
-          <div className="loader" href='/'>
+          <div className="loader" onClick={() => navigate("/")}>
             <div className="loader-square"></div>
             <div className="loader-square"></div>
             <div className="loader-square"></div>
@@ -121,14 +121,14 @@ const Login = () => {
           </div>
           <div className="collapse navbar-collapse justify-content-end">
             <div className="navbar-nav">
+              <button className="btn btn-outline-light me-2" onClick={() => navigate("/")}>
+                Home
+              </button>
               <button className="btn btn-outline-light me-2" onClick={() => navigate("/login")}>
                 Login
               </button>
               <button className="btn btn-outline-light me-2" onClick={handleRegisterClick}>
                 Register
-              </button>
-              <button className="btn btn-outline-light me-2" onClick={() => navigate("/")}>
-                Home
               </button>
             </div>
           </div>
@@ -163,9 +163,16 @@ const Login = () => {
                 required
               />
             </div>
-            <a>
-              Forgot your password? <span className="text-primary" onClick={() => navigate("/reset-password")}>Reset it here</span>
-            </a>
+            <div className="mb-3">
+              Forgot your password?{" "}
+              <span
+                className="text-primary"
+                onClick={() => navigate("/reset-password")}
+                style={{ cursor: "pointer", textDecoration: "underline" }}
+              >
+                Reset it here
+              </span>
+            </div>
             <button type="submit" className="btn btn-dark w-100">
               Login
             </button>

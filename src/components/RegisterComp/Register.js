@@ -74,7 +74,7 @@ const Register = () => {
       {/* Navbar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
         <div className="container">
-          <div className="loader">
+          <div className="loader" onClick={() => navigate("/")}>
             <div className="loader-square"></div>
             <div className="loader-square"></div>
             <div className="loader-square"></div>
@@ -85,14 +85,14 @@ const Register = () => {
           </div>
           <div className="collapse navbar-collapse justify-content-end">
             <div className="navbar-nav">
+              <button className="btn btn-outline-light me-2" onClick={() => navigate("/")}>
+                Home
+              </button>
               <button className="btn btn-outline-light me-2" onClick={() => navigate("/login")}>
                 Login
               </button>
               <button className="btn btn-outline-light me-2" onClick={() => navigate("/register")}>
                 Register
-              </button>
-              <button className="btn btn-outline-light me-2" onClick={() => navigate("/")}>
-                Home
               </button>
             </div>
           </div>
